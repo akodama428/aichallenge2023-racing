@@ -238,9 +238,12 @@
     
     <remap from="input/kinematics" to="/localization/kinematic_state"/>
     <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
-    <remap from="output/control_cmd" to="/control/command/control_cmd"/>
+    <!-- <remap from="output/control_cmd" to="/control/command/control_cmd"/> -->
+    <remap from="output/control_cmd" to="/control/simple_pure_pursuit/control_cmd"/>
   </node>
-
+  <!-- Control -->
+  <include file="$(find-pkg-share autoware_launch)/launch/components/tier4_control_component.launch.xml"/>
+  
   <!-- vehicle -->
   <include file="$(find-pkg-share raw_vehicle_cmd_converter)/launch/raw_vehicle_converter.launch.xml">
     <arg name="max_throttle" value="1.0"/>
@@ -259,12 +262,12 @@
   
   <node pkg="my_control" exec="sub_cmd" name="sub_cmd" output="screen">
   	<remap from="input_dallara_cmd" to="/vehicle_inputs_to_my_package"/>
-        <remap from="input_pure_cmd" to="/control/command/control_cmd"/>
-        <remap from="input_velocity_cmd" to="/vehicle/status/velocity_status"/>
+    <remap from="input_pure_cmd" to="/control/command/control_cmd"/>
+    <remap from="input_velocity_cmd" to="/vehicle/status/velocity_status"/>
         
-        <remap from="output_pure_cmd" to="/pure_cmd"/>
-        <remap from="output_dallara_cmd" to="/vehicle_inputs"/>
-        <remap from="output_velocity_cmd" to="/vehicle_velocity"/>
+    <remap from="output_pure_cmd" to="/pure_cmd"/>
+    <remap from="output_dallara_cmd" to="/vehicle_inputs"/>
+    <remap from="output_velocity_cmd" to="/vehicle_velocity"/>
   </node>
       
 

@@ -61,7 +61,7 @@ def launch_setup(context, *args, **kwargs):
         obstacle_collision_checker_param = yaml.safe_load(f)["/**"]["ros__parameters"]
 
     controller_component = ComposableNode(
-        package="trajectory_follower_node",
+        package="trajectory_follower_node_custom",
         plugin="autoware::motion::control::trajectory_follower_node::Controller",
         name="controller_node_exe",
         namespace="trajectory_follower",
@@ -71,11 +71,12 @@ def launch_setup(context, *args, **kwargs):
             ("~/input/current_steering", "/vehicle/status/steering_status"),
             ("~/input/current_accel", "/localization/acceleration"),
             ("~/input/current_operation_mode", "/system/operation_mode/state"),
+            ("~/input/simple_pure_pursuit_cmd", "/control/simple_pure_pursuit/control_cmd"),
             ("~/output/predicted_trajectory", "lateral/predicted_trajectory"),
             ("~/output/lateral_diagnostic", "lateral/diagnostic"),
             ("~/output/slope_angle", "longitudinal/slope_angle"),
             ("~/output/longitudinal_diagnostic", "longitudinal/diagnostic"),
-            ("~/output/control_cmd", "control_cmd"),
+            ("~/output/control_cmd", "/control/command/control_cmd"),
         ],
         parameters=[
             {
@@ -260,10 +261,10 @@ def launch_setup(context, *args, **kwargs):
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=[
             controller_component,
-            lane_departure_component,
-            shift_decider_component,
-            vehicle_cmd_gate_component,
-            operation_mode_transition_manager_component,
+            # lane_departure_component,
+            # shift_decider_component,
+            # vehicle_cmd_gate_component,
+            # operation_mode_transition_manager_component,
         ],
     )
 
@@ -271,9 +272,9 @@ def launch_setup(context, *args, **kwargs):
         [
             PushRosNamespace("control"),
             container,
-            external_cmd_selector_loader,
-            external_cmd_converter_loader,
-            obstacle_collision_checker_loader,
+            # external_cmd_selector_loader,
+            # external_cmd_converter_loader,
+            # obstacle_collision_checker_loader,
         ]
     )
 

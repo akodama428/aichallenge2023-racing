@@ -1,72 +1,65 @@
 /**:
   ros__parameters:
-    # -- system --
-    traj_resample_dist: 0.1         # path resampling interval [m]
-    use_steer_prediction: false     # flag for using steer prediction (do not use steer measurement)
-    admissible_position_error: 5.0  # stop mpc calculation when error is larger than the following value
-    admissible_yaw_error_rad: 1.57  # stop mpc calculation when error is larger than the following value
-
-    # -- path smoothing --
-    enable_path_smoothing: false   # flag for path smoothing
-    path_filter_moving_ave_num: 25 # param of moving average filter for path smoothing
-    curvature_smoothing_num_traj: 15        # point-to-point index distance used in curvature calculation (for trajectory): curvature is calculated from three points p(i-num), p(i), p(i+num)
-    curvature_smoothing_num_ref_steer: 15   # point-to-point index distance used in curvature calculation (for steer command reference): curvature is calculated from three points p(i-num), p(i), p(i+num)
-
-    # -- trajectory extending --
-    extend_trajectory_for_end_yaw_control: true  # flag of trajectory extending for terminal yaw control
-
-    # -- mpc optimization --
-    qp_solver_type: "osqp"                       # optimization solver option (unconstraint_fast or osqp)
-    mpc_prediction_horizon: 50                   # prediction horizon step
-    mpc_prediction_dt: 0.1                       # prediction horizon period [s]
-    mpc_weight_lat_error: 0.1                    # lateral error weight in matrix Q
-    mpc_weight_heading_error: 0.0                # heading error weight in matrix Q
-    mpc_weight_heading_error_squared_vel: 0.3    # heading error * velocity weight in matrix Q
-    mpc_weight_steering_input: 1.0               # steering error weight in matrix R
-    mpc_weight_steering_input_squared_vel: 0.25  # steering error * velocity weight in matrix R
-    mpc_weight_lat_jerk: 0.0                     # lateral jerk weight in matrix R
-    mpc_weight_steer_rate: 0.0                   # steering rate weight in matrix R
-    mpc_weight_steer_acc: 0.000001               # steering angular acceleration weight in matrix R
-    mpc_low_curvature_weight_lat_error: 0.1                    # lateral error weight in matrix Q in low curvature point
-    mpc_low_curvature_weight_heading_error: 0.0                # heading error weight in matrix Q in low curvature point
-    mpc_low_curvature_weight_heading_error_squared_vel: 0.3    # heading error * velocity weight in matrix Q in low curvature point
-    mpc_low_curvature_weight_steering_input: 1.0               # steering error weight in matrix R in low curvature point
-    mpc_low_curvature_weight_steering_input_squared_vel: 0.25  # steering error * velocity weight in matrix R in low curvature point
-    mpc_low_curvature_weight_lat_jerk: 0.0                     # lateral jerk weight in matrix R in low curvature point
-    mpc_low_curvature_weight_steer_rate: 0.0                   # steering rate weight in matrix R in low curvature point
-    mpc_low_curvature_weight_steer_acc: 0.000001               # steering angular acceleration weight in matrix R in low curvature point
-    mpc_low_curvature_thresh_curvature: 0.0                    # threshold of curvature to use "low_curvature" parameter (recommend: 0.01~0.03)
-    mpc_weight_terminal_lat_error: 1.0           # terminal lateral error weight in matrix Q to improve mpc stability
-    mpc_weight_terminal_heading_error: 0.1       # terminal heading error weight in matrix Q to improve mpc stability
-    mpc_zero_ff_steer_deg: 0.5                   # threshold that feed-forward angle becomes zero
-    mpc_acceleration_limit: 2.0                  # limit on the vehicle's acceleration
-    mpc_velocity_time_constant: 0.3              # time constant used for velocity smoothing
-    mpc_min_prediction_length: 5.0               # minimum prediction length
-
-    # -- vehicle model --
-    vehicle_model_type: "kinematics" # vehicle model type for mpc prediction. option is kinematics, kinematics_no_delay, and dynamics
-    input_delay: 0.24                # steering input delay time for delay compensation
-    vehicle_model_steer_tau: 0.3     # steering dynamics time constant (1d approximation) [s]
-    steer_rate_lim_dps: 40.0         # steering angle rate limit [deg/s]
-    acceleration_limit: 2.0          # acceleration limit for trajectory velocity modification [m/ss]
-    velocity_time_constant: 0.3      # velocity dynamics time constant  for trajectory velocity modification [s]
-
-    # -- lowpass filter for noise reduction --
-    steering_lpf_cutoff_hz: 3.0 # cutoff frequency of lowpass filter for steering command [Hz]
-    error_deriv_lpf_cutoff_hz: 5.0
-
-    # stop state: steering command is kept in the previous value in the stop state.
-    stop_state_entry_ego_speed: 0.001
-    stop_state_entry_target_speed: 0.001
+    acceleration_limit: 10.0
+    admissible_position_error: 5.0
+    admissible_yaw_error_rad: 1.57
     converged_steer_rad: 0.1
+    curvature_smoothing_num_ref_steer: 15
+    curvature_smoothing_num_traj: 15
+    enable_path_smoothing: true
+    error_deriv_lpf_cutoff_hz: 5.0
+    extend_trajectory_for_end_yaw_control: true
+    input_delay: 0.05
     keep_steer_control_until_converged: true
+    mpc_acceleration_limit: 2.0
+    mpc_low_curvature_thresh_curvature: 0.0162468957829191
+    mpc_low_curvature_weight_heading_error: 1.0369029728591335
+    mpc_low_curvature_weight_heading_error_squared_vel: 2.4402640924457093
+    mpc_low_curvature_weight_lat_error: 0.742605106970655
+    mpc_low_curvature_weight_lat_jerk: 0.41655003656492
+    mpc_low_curvature_weight_steer_acc: 0.977519705642858
+    mpc_low_curvature_weight_steer_rate: 0.247923479219467
+    mpc_low_curvature_weight_steering_input: 0.647655754253609
+    mpc_low_curvature_weight_steering_input_squared_vel: 0.65654713806828
+    mpc_min_prediction_length: 5.0
+    mpc_prediction_dt: 0.0559399551839481
+    mpc_prediction_horizon: 35
+    mpc_velocity_time_constant: 0.3
+    mpc_weight_heading_error: 10.537003112502548
+    mpc_weight_heading_error_squared_vel: 4.81047709721756
+    mpc_weight_lat_error: 3.488749322657941
+    mpc_weight_lat_jerk: 0.635291520339419
+    mpc_weight_steer_acc: 0.00151125000008631
+    mpc_weight_steer_rate: 0.550040919498896
+    mpc_weight_steering_input: 0.656418415862529
+    mpc_weight_steering_input_squared_vel: 0.47160013120835
+    mpc_weight_terminal_heading_error: 66.43959643561317
+    mpc_weight_terminal_lat_error: 2.131439579711734
+    mpc_zero_ff_steer_deg: 0.5
     new_traj_duration_time: 1.0
     new_traj_end_dist: 0.3
-
-    # steer offset
+    path_filter_moving_ave_num: 25
+    qp_solver_type: osqp
+    steer_rate_lim_dps: 2500.0
+    steering_lpf_cutoff_hz: 3.0
     steering_offset:
-      enable_auto_steering_offset_removal: true
-      update_vel_threshold: 5.56
-      update_steer_threshold: 0.035
       average_num: 1000
+      enable_auto_steering_offset_removal: true
       steering_offset_limit: 0.02
+      update_steer_threshold: 0.035
+      update_vel_threshold: 5.56
+    stop_state_entry_ego_speed: 0.001
+    stop_state_entry_target_speed: 0.001
+    traj_resample_dist: 0.1
+    use_steer_prediction: true
+    vehicle:
+      cf: 77747.0
+      cr: 155494.663
+      mass_fl: 177.364
+      mass_fr: 177.364
+      mass_kg: 815.11
+      mass_rl: 230.191
+      mass_rr: 230.191
+    vehicle_model_steer_tau: 0.05
+    vehicle_model_type: dynamics
+    velocity_time_constant: 0.3
