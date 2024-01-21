@@ -218,6 +218,13 @@
 
           </node_container>
         </group> <!-- behavior_planning -->
+
+        <node pkg="corner_path_planner_custom" exec="corner_path_planner_node" name="corner_path_planner_node" output="screen">
+          <remap from="input" to="/planning/scenario_planning/lane_driving/behavior_planning/path_with_lane_id"/>
+          <remap from="output" to="/planning/scenario_planning/corner_path_planning/path"/>
+          <param from="$(find-pkg-share autoware_launch)/config/planning/scenario_planning/common/corner_path_planner.param.yaml" />
+        </node>
+
       </group> <!-- lane_driving -->
 
       <!-- Customizable -->
@@ -238,11 +245,11 @@
     
     <remap from="input/kinematics" to="/localization/kinematic_state"/>
     <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
-    <!-- <remap from="output/control_cmd" to="/control/command/control_cmd"/> -->
-    <remap from="output/control_cmd" to="/control/simple_pure_pursuit/control_cmd"/>
+    <remap from="output/control_cmd" to="/control/command/control_cmd"/>
+    <!-- <remap from="output/control_cmd" to="/control/simple_pure_pursuit/control_cmd"/> -->
   </node>
   <!-- Control -->
-  <include file="$(find-pkg-share autoware_launch)/launch/components/tier4_control_component.launch.xml"/>
+  <!-- <include file="$(find-pkg-share autoware_launch)/launch/components/tier4_control_component.launch.xml"/> -->
   
   <!-- vehicle -->
   <include file="$(find-pkg-share raw_vehicle_cmd_converter)/launch/raw_vehicle_converter.launch.xml">
@@ -266,7 +273,8 @@
     <remap from="input_velocity_cmd" to="/vehicle/status/velocity_status"/>
         
     <remap from="output_pure_cmd" to="/pure_cmd"/>
-    <remap from="output_dallara_cmd" to="/vehicle_inputs"/>
+    <!-- <remap from="output_dallara_cmd" to="/vehicle_inputs"/> -->
+    <remap from="output_dallara_cmd" to="/rl_planner_inputs"/>
     <remap from="output_velocity_cmd" to="/vehicle_velocity"/>
   </node>
       

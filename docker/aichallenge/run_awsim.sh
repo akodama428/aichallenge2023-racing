@@ -2,5 +2,5 @@
 
 sudo ip link set multicast on lo
 
-source ./aichallenge_ws/install/setup.bash
+source /aichallenge/aichallenge_ws/install/setup.bash
 /aichallenge/AWSIM/AWSIM.x86_64

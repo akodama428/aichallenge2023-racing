@@ -1,0 +1,13 @@
+/**:
+  ros__parameters:
+    # csv_map_path: "/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/map/sample_scripts/raceline/modify_raceline.csv"
+    # csv_map_path: "/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/map/sample_scripts/raceline/filterd_modify_raceline_highV.csv"
+    csv_map_path: "/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/map/sample_scripts/raceline/filterd_modify_raceline.csv"
+    max_curvature: 0.05
+    min_curvature: -0.05
+    max_ratio: 0.90
+    min_ratio: 0.1
+    prepare_idx1: 20
+    prepare_idx2: 60
+    prepare_idx3: 10
+    smoothing_window_size: 10
