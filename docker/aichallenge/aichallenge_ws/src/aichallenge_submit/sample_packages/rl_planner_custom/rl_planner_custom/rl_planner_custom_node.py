@@ -176,7 +176,7 @@ class CustomEnv(gym.Env):
             if record_expart_data == True:
                 ts = Trajectory(obs=np.array(self.observations), acts=np.array(self.actions), infos=np.array(self.infos))
                 self.trajectorys.append(ts)
-                with open("invader_expert.pickle", mode="wb") as f:
+                with open("/aichallenge/output/invader_expert.pickle", mode="wb") as f:
                     pickle.dump(self.trajectorys, f)
 
             # シミュレーションのシャットダウン
