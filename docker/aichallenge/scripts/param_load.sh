@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ros2 param load /planning/scenario_planning/lane_driving/corner_path_planner_node /aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/corner_path_planner.param.yaml
+ros2 param load /planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner /aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml
