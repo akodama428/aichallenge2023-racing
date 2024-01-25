@@ -56,9 +56,11 @@ import pickle
 
 # エキスパートのデータ保存中は、VehicleInputsを受信して、トラジェクトリとして保存する
 record_expart_data = False
-MAX_EPISODE_LEN = 1100
-expert_data_path = "/aichallenge/output/expert_data_only_edge_x"
+MAX_EPISODE_LEN = 2200
+# expert_data_path = "/aichallenge/output/expert_data_only_edge_x"
+expert_data_path = "/aichallenge/output/expert_data_acc_cmd2"
 output_policy_path = "/aichallenge/output/expert_policy_v0.pt"
+publish_target_gx = True
 
 class CustomEnv(gym.Env):
     """
@@ -81,17 +83,24 @@ class CustomEnv(gym.Env):
         self.plot_marker = PlotMarker()
 
         # 更新周期
-        planner_cycle = 0.05
+        planner_cycle = 0.03
         self.action_update_cycle = int(planner_cycle / self.autoware_if_node.ctl_period)
         print(f"action update cycle :{self.action_update_cycle}")
 
         self.path_sampling = 2
         self.path_length = int(120 / self.path_sampling)
 
-        # 行動空間：[throttle_cmd, brake_cmd]
-        max_cmd = np.array([1.0, 1.0])
-        min_cmd = np.array([0, 0])
-        self.action_space = gym.spaces.Box(low=min_cmd, high=max_cmd, shape=(2,), dtype=np.float32)
+        # 行動空間
+        if publish_target_gx == True:
+            # [target gx]
+            max_cmd = 100.0
+            min_cmd = -100.0
+            self.action_space = gym.spaces.Box(low=min_cmd, high=max_cmd, shape=(1,), dtype=np.float32)
+        else:
+            # [throttle_cmd, brake_cmd]
+            max_cmd = np.array([1.0, 1.0])
+            min_cmd = np.array([0, 0])
+            self.action_space = gym.spaces.Box(low=min_cmd, high=max_cmd, shape=(2,), dtype=np.float32)
         # 状態空間：[x座標、y座標、車速x、コース左端x座標、コース左端y座標、コース右端x座標、コース右端y座標]
         max_x = 23145
         min_x = 21878
@@ -164,8 +173,11 @@ class CustomEnv(gym.Env):
         # print("action: {} , action type: {}".format(action[0], action[0].dtype))
         # 目標値を設定する
         if record_expart_data == False:
-            self.autoware_if_node.throttle_cmd = action[0]
-            self.autoware_if_node.brake_cmd    = action[1]
+            if publish_target_gx == True:
+                self.autoware_if_node.acc_cmd = action[0]
+            else:
+                self.autoware_if_node.throttle_cmd = action[0]
+                self.autoware_if_node.brake_cmd    = action[1]
 
         # Autowareとの同期をとる。actionコマンドが一定周期publishされると更新する
         while self.autoware_if_node.publish_action_count < int(self.action_update_cycle):
@@ -184,8 +196,12 @@ class CustomEnv(gym.Env):
         reward = velocity
         # ただし、車速が30kph以下で減速した場合はペナルティを与える
         if velocity < 10.0:
-            if self.autoware_if_node.brake_cmd >= 0.0:
-                reward -= 50.0
+            if publish_target_gx == True:
+                if self.autoware_if_node.acc_cmd < 0.0:
+                    reward -= 50.0
+            else:
+                if self.autoware_if_node.brake_cmd >= 0.0:
+                    reward -= 50.0
 
         # ただし、コースアウトや衝突した場合は、ペナルティを与える
         if (self.left_bound_at_ego < 0) or (self.right_bound_at_ego > 0):
@@ -230,7 +246,10 @@ class CustomEnv(gym.Env):
         # for i in range(len(state)):
         #     print(f"{state[i]:.1f},", end="")
         if self.step_count % 10 == 0:
-            print(f"step:{self.step_count}, action:{self.autoware_if_node.throttle_cmd:.1f}, {self.autoware_if_node.brake_cmd:.1f}, reward:{reward:.1f}")
+            if publish_target_gx == True:
+                print(f"step:{self.step_count}, action:{self.autoware_if_node.acc_cmd:.1f}, reward:{reward:.1f}")
+            else:
+                print(f"step:{self.step_count}, action:{self.autoware_if_node.throttle_cmd:.1f}, {self.autoware_if_node.brake_cmd:.1f}, reward:{reward:.1f}")
 
         return (
             state.astype(np.float32),
@@ -314,14 +333,19 @@ class CustomEnv(gym.Env):
         return state
     
     def get_action(self):
-        action = [0.0, 0.0]
-        action[0] = self.autoware_if_node.throttle_cmd
-        action[1] = self.autoware_if_node.brake_cmd
+        if publish_target_gx == True:
+            action = [0.0]
+            action[0] = self.autoware_if_node.acc_cmd
+        else:
+            action = [0.0, 0.0]
+            action[0] = self.autoware_if_node.throttle_cmd
+            action[1] = self.autoware_if_node.brake_cmd
         return action
 
     def startSimulation(self):
         # Autowareを起動
         p_autoware = subprocess.Popen("exec " + "bash /aichallenge/run_autoware.sh", shell=True)
+        sleep(1)
         # シミュレータを起動
         p_awsim = subprocess.Popen("exec " + "/aichallenge/AWSIM/AWSIM.x86_64", shell=True)
         
@@ -381,19 +405,20 @@ class AutowareIfNode(Node):
         self.create_subscription(AccelWithCovarianceStamped, "/localization/acceleration", self.onAcceleration, 10)
         self.create_subscription(Odometry, "/localization/kinematic_state", self.onOdometry, 10)
         self.create_subscription(PredictedObjects, "/perception/object_recognition/objects", self.onPerception, 10)
-        self.create_subscription(VehicleInputs, "/rl_planner_inputs", self.onInputsRaw, 10)
-        self.pub_cmd_ = self.create_publisher(VehicleInputs, "/vehicle_inputs", 10)
+        if publish_target_gx == True:
+            self.create_subscription(AckermannControlCommand, "/control/simple_pure_pursuit/control_cmd", self.onCommandRaw, 10)
+            self.pub_cmd_ = self.create_publisher(AckermannControlCommand, "/control/command/control_cmd", 10) # launchファイルの一部を/control/rl_planner/control_cmdに修正すること
+        else:
+            self.create_subscription(VehicleInputs, "/rl_planner_inputs", self.onInputsRaw, 10)  # launchファイルの/vehicle_inputsを/rl_planner_inputsに修正すること
+            self.pub_cmd_ = self.create_publisher(VehicleInputs, "/vehicle_inputs", 10)
 
         # IFの初期化
         self.reset_if()
+        self.is_ready = False
 
         # CustomEnvとの同期用
         self.publish_action_count = 0
 
-    def get_bound_distances(self):
-        self.bound_distances = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
-        return self.bound_distances
-    
     def get_velocity(self):
         return self.current_vel_x
     
@@ -405,6 +430,8 @@ class AutowareIfNode(Node):
         self.current_vel_x = None
         self.current_vel_y = None
         self.dynamic_objects = None
+        self.control_cmd = None
+        self.acc_cmd = 0.0
         self.vehicle_inputs_raw = None
         self.throttle_cmd = 0.0
         self.brake_cmd = 0.0
@@ -413,33 +440,46 @@ class AutowareIfNode(Node):
 
     ## Check if input data is initialized. ##
     def isReady(self):
+        self.is_ready = False
         if self.reference_path is None:
             self.get_logger().info("The reference path data has not ready yet.")
-            return False
+            return self.is_ready
         if self.current_accel is None:
             self.get_logger().info("The accel data has not ready yet.")
-            return False
+            return self.is_ready
         if self.ego_pose is None:
             self.get_logger().info("The ego pose data has not ready yet.")
-            return False
+            return self.is_ready
         if self.dynamic_objects is None:
             self.get_logger().info("The dynamic objects data has not ready yet.")
-            return False
-        if self.vehicle_inputs_raw is None:
+            return self.is_ready
+        if (publish_target_gx == True) and (self.control_cmd is None):
+            self.get_logger().info("The acc_cmd data has not ready yet.")
+            return self.is_ready
+        if (publish_target_gx == False) and (self.vehicle_inputs_raw is None):
             self.get_logger().info("The vehicle_inputs_raw data has not ready yet.")
-            return False
+            return self.is_ready
         self.get_logger().info("autoware if node is ready!")
-        return True
+        self.is_ready = True
+        return self.is_ready
 
     ## Callback function for timer ##
     def onTimer(self):
-        vehicle_inputs_msg = VehicleInputs()
-        vehicle_inputs_msg.header = Header(stamp=self.get_clock().now().to_msg())
-        vehicle_inputs_msg.throttle_cmd = float(self.throttle_cmd) * 100.0 * 1.3
-        vehicle_inputs_msg.brake_cmd = float(self.brake_cmd) * 6000.0
-        vehicle_inputs_msg.steering_cmd  = float(self.steering_cmd) # * 180.0 / 3.141 * 19.5
-        vehicle_inputs_msg.gear_cmd  = int(self.gear_cmd)
-        self.pub_cmd_.publish(vehicle_inputs_msg)
+        if self.control_cmd is not None:
+            if publish_target_gx == True:
+                cmd = AckermannControlCommand()
+                cmd = self.control_cmd
+                cmd.longitudinal.acceleration = float(self.acc_cmd) *1.4
+                self.pub_cmd_.publish(cmd)
+        if self.vehicle_inputs_raw is not None:
+            if publish_target_gx == False:
+                vehicle_inputs_msg = VehicleInputs()
+                vehicle_inputs_msg.header = Header(stamp=self.get_clock().now().to_msg())
+                vehicle_inputs_msg.throttle_cmd = float(self.throttle_cmd) * 100.0 * 1.3
+                vehicle_inputs_msg.brake_cmd = float(self.brake_cmd) * 6000.0
+                vehicle_inputs_msg.steering_cmd  = float(self.steering_cmd) # * 180.0 / 3.141 * 19.5
+                vehicle_inputs_msg.gear_cmd  = int(self.gear_cmd)
+                self.pub_cmd_.publish(vehicle_inputs_msg)
         self.publish_action_count += 1
 
     ## Callback function for path subscriber ##
@@ -469,14 +509,21 @@ class AutowareIfNode(Node):
         obj_info = PredictedObjectsInfo (self.dynamic_objects.objects)
         self.obj_pose = obj_info.objects_rectangle
 
-    ## Callback function for ActuationCommand from autoware ##
+    ## Callback function for ActuationCommand from autoware ##((
+    def onCommandRaw(self, msg: AckermannControlCommand):
+        self.control_cmd = msg
+        if publish_target_gx == True:
+            if record_expart_data == True:
+                self.acc_cmd = msg.longitudinal.acceleration
+
     def onInputsRaw(self, msg: VehicleInputs):
         self.vehicle_inputs_raw = msg
         self.steering_cmd = msg.steering_cmd
         self.gear_cmd     = msg.gear_cmd
-        if record_expart_data == True:
-            self.throttle_cmd = msg.throttle_cmd / 100.0
-            self.brake_cmd    = msg.brake_cmd / 6000.0
+        if publish_target_gx == False:
+            if record_expart_data == True:
+                self.throttle_cmd = msg.throttle_cmd / 100.0
+                self.brake_cmd    = msg.brake_cmd / 6000.0
 
 
 def main():
@@ -519,7 +566,10 @@ def main():
         for i in range(0, record_episodes):
             state = env.reset()
             while True:
-                action = [0.0,0.0]
+                if publish_target_gx == True:
+                    action = [0.0]
+                else:
+                    action = [0.0,0.0]
                 state, reward, done, info = env.step(action)
                 if done:
                     break
@@ -527,7 +577,7 @@ def main():
     
     # 学習アルゴリズム
     if record_expart_data == False:
-        print("start imitation learning!")
+        print(f"start imitation learning! observation_space:{env.observation_space} action_space:{env.action_space}")
 
         # 模倣学習
         SEED = 1
@@ -546,7 +596,7 @@ def main():
             rng               = rng,
             device            = 'cpu',  # TODO:GPU使えるようにする。このせいでうまくいってない？？
         )
-        bc_trainer.train(n_epochs=100)
+        bc_trainer.train(n_epochs=1)
         save_policy(bc_trainer.policy, output_policy_path)
         print("finish imitation learning!")
 
@@ -604,9 +654,9 @@ def main():
                 return bc_trainer.policy
         learner = PPO(CopyPolicy, env, verbose=0)
         reward_net = BasicRewardNet(
-            observation_space=env.observation_space,
-            action_space=env.action_space,
-            normalize_input_layer=RunningNorm,
+            observation_space     = env.observation_space,
+            action_space          = env.action_space,
+            normalize_input_layer = RunningNorm,
         )
         gail_trainer = GAIL(
             demonstrations=transitions,
@@ -617,7 +667,7 @@ def main():
             gen_algo=learner,
             reward_net=reward_net,
         )
-        print("start train!")
+        print(f"start gail training! observation_space:{env.observation_space} action_space:{env.action_space}")
         gail_trainer.train(total_timesteps = 400_000)  # Train for 800_000 steps to match expert.
         gail_trainer.gen_algo.save("gail_planner_ppo")
 

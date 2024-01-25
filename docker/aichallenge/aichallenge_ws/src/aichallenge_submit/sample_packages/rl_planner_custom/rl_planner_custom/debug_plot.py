@@ -156,7 +156,7 @@ class PlotMarker():
 
             plt.xlim(plot_xmin, plot_xmax)
             plt.ylim(plot_ymin, plot_ymax)
-            plt.axis("equal")
+            # plt.axis("equal")
             plt.pause(0.01)
             #plt.show()
 

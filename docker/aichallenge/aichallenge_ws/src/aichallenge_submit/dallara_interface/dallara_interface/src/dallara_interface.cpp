@@ -77,14 +77,14 @@ namespace dallara_interface {
     // const double gear_ratio_6th = 0.8889;
     // const double gear_ratio_final = 3.0;
     // const double readline_engine_rpm = 7500.0;
-    // const double readline_engene_margine_rpm = 500.0;
+    // const double readline_engene_margine_rpm = 2400.0;
     // const double tire_radius = 0.3;
     // const double max_vel_1st_kph = (readline_engine_rpm - readline_engene_margine_rpm) / 60.0 / gear_ratio_final / gear_ratio_1st * ( 2.0 * 3.14 * tire_radius) * 3.6; 
     // const double max_vel_2nd_kph = (readline_engine_rpm - readline_engene_margine_rpm) / 60.0 / gear_ratio_final / gear_ratio_2nd * ( 2.0 * 3.14 * tire_radius) * 3.6; 
     // const double max_vel_3rd_kph = (readline_engine_rpm - readline_engene_margine_rpm) / 60.0 / gear_ratio_final / gear_ratio_3rd * ( 2.0 * 3.14 * tire_radius) * 3.6; 
     // const double max_vel_4th_kph = (readline_engine_rpm - readline_engene_margine_rpm) / 60.0 / gear_ratio_final / gear_ratio_4th * ( 2.0 * 3.14 * tire_radius) * 3.6; 
     // const double max_vel_5th_kph = (readline_engine_rpm - readline_engene_margine_rpm) / 60.0 / gear_ratio_final / gear_ratio_5th * ( 2.0 * 3.14 * tire_radius) * 3.6; 
-    // // const double max_vel_6th_kph = (readline_engene_rpm - readline_engene_margine_rpm) / 60.0 / gear_ratio_final / gear_ratio_6th * ( 2.0 * 3.14 * tire_radius) * 3.6; 
+    // const double max_vel_6th_kph = (readline_engene_rpm - readline_engene_margine_rpm) / 60.0 / gear_ratio_final / gear_ratio_6th * ( 2.0 * 3.14 * tire_radius) * 3.6; 
     // const double gear_thresholds[] = { -1.0, max_vel_1st_kph, max_vel_2nd_kph, max_vel_3rd_kph, max_vel_4th_kph, max_vel_5th_kph };
     const int num_gears = sizeof(gear_thresholds) / sizeof(gear_thresholds[0]);
     int gear_cmd_dallara_ = 1;

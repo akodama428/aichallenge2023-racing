@@ -2,12 +2,13 @@ from setuptools import find_packages, setup
 import os
 import glob
 package_name = 'rl_planner_custom'
-submodules = ['rl_planner_custom/util']
+submodules = ['rl_planner_custom/util', 
+              'rl_planner_custom/myenv',  ]
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test']),
-    # packages=[package_name] + submodules,
+    # packages=find_packages(exclude=['test']),
+    packages=[package_name] + submodules,
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
